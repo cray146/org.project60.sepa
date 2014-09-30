@@ -437,7 +437,9 @@ function sepa_civicrm_navigationMenu(&$params) {
   $civiContributeID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'Contributions', 'id', 'name');
   if (!empty($civiContributeID)) {
     $civiContributeChildren = $params[$civiContributeID]['child'];
-  
+
+    $lastElement = end($civiContributeChildren);
+
     // now insert the CiviSEPA dashboard element
     $newNavId = $lastElement['attributes']['navID'] + 1;
 

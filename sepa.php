@@ -467,3 +467,38 @@ function sepa_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissi
   $permissions['sepa_logic']['received'] = array('edit contributions');
   $permissions['sepa_transaction_group']['toaccgroup'] = array('edit contributions');
 }
+
+/**
+ * @cray146
+ *
+ * Implements hook_civicrm_links
+ *
+ * Add link Record SDD to membership links to allow recording Membership
+ * Payments via SDD.
+ */
+function sepa_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &$values) {
+  if ($op == "membership.tab.row" and $objectName == "Membership") {
+    /*
+    $sql = 'SELECT contact_id FROM civicrm_membership WHERE id = %d';
+    $sqlParams = array(
+      $objectId,
+      'Integer'
+    );
+    $contactId = CRM_Core_DAO::singleValueQuery($sql, $sqlParams); 
+     */
+
+    $sql = "SELECT contact_id FROM civicrm_membership WHERE id = {$objectId}";
+    $contactId = CRM_Core_DAO::singleValueQuery($sql); 
+    array_unshift(
+      $links,
+      array(
+        'name' => ts("Record SDD Payment"),
+        'url' => '/civicrm/sepa/cmandate',
+        'qs' => 'cid=%%contactId%%&mid=%%membershipId%%&financial_type_id=2',
+        'title' => ts("Record SDD Membership Payment")
+      )
+    );
+    $values['contactId'] = $contactId;
+    $values['membershipId'] = $objectId;
+  }
+}

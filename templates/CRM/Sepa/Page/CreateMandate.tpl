@@ -27,6 +27,7 @@
 {if $submit_url}
 <form id='new_sepa_mandate' action="{$submit_url}" method="post">
 	<input type="hidden" name="contact_id" value="{$contact_id}" />
+	<input type="hidden" name="membership_id" value="{$membership_id}" />
 	<table>
 		<tr>	<!-- CREDITOR -->
 			<td>{ts}Creditor{/ts}:</td>

@@ -532,8 +532,9 @@ function sepa_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$erro
  *
  * Implements hook_civicrm_links
  *
- * Add link Record SDD to membership links to allow recording Membership
- * Payments via SDD.
+ * Add link Record SDD Payment to membership links to allow recording Membership
+ * Payments via SDD. If there is already a recurring contribution record
+ * connected to the membership add link View SDD Payment instead.
  */
 function sepa_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &$values) {
   if ($op == "membership.tab.row" and $objectName == "Membership") {
@@ -545,19 +546,40 @@ function sepa_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &$valu
     );
     $contactId = CRM_Core_DAO::singleValueQuery($sql, $sqlParams); 
      */
-
-    $sql = "SELECT contact_id FROM civicrm_membership WHERE id = {$objectId}";
-    $contactId = CRM_Core_DAO::singleValueQuery($sql); 
-    array_unshift(
-      $links,
-      array(
-        'name' => ts("Record SDD Payment"),
-        'url' => '/civicrm/sepa/cmandate',
-        'qs' => 'cid=%%contactId%%&mid=%%membershipId%%&financial_type_id=2',
-        'title' => ts("Record SDD Membership Payment")
-      )
+    $membership_params = array(
+      'version' => 3,
+      'id' => $objectId
     );
-    $values['contactId'] = $contactId;
-    $values['membershipId'] = $objectId;
+    $membership = civicrm_api('Membership', 'get', $membership_params);
+    if ($membership['is_error'] == 0) {
+      $sql = "SELECT contact_id FROM civicrm_membership WHERE id = {$objectId}";
+      $contactId = CRM_Core_DAO::singleValueQuery($sql); 
+      if ($membership['values'][$objectId]['contribution_recur_id'] > 0) {
+        $contributionRecurId = $membership['values'][$objectId]['contribution_recur_id'];
+        array_unshift(
+          $links,
+          array(
+            'name' => ts("View SDD Payment"),
+            'url' => "/civicrm/contact/view/contributionrecur",
+            'qs' => "reset=1&id=%%contributionRecurId%%&cid=%%contactId%%",
+            'title' => ts("View SDD Membership Payment")
+          )
+        );
+        $values['contactId'] = $contactId;
+        $values['contributionRecurId'] = $contributionRecurId;
+      } else {
+        array_unshift(
+          $links,
+          array(
+            'name' => ts("Record SDD Payment"),
+            'url' => '/civicrm/sepa/cmandate',
+            'qs' => 'cid=%%contactId%%&mid=%%membershipId%%&financial_type_id=2',
+            'title' => ts("Record SDD Membership Payment")
+          )
+        );
+        $values['contactId'] = $contactId;
+        $values['membershipId'] = $objectId;
+      }
+    }
   }
 }

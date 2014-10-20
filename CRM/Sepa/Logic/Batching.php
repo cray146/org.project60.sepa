@@ -167,6 +167,27 @@ class CRM_Sepa_Logic_Batching {
             $mandates_by_nextdate[$collection_date][$index]['mandate_entity_id'] = $contribution['id'];
           }
           unset($existing_contributions_by_recur_id[$recur_id]);
+          //@cray146:
+          // Here we could tie the newly created contribution to a membership
+          // so that SDD membership payments are displayed along with the
+          // membership as is the case with regular contributions.
+          // This is done by inserting a record in the
+          // civicrm_membership_payment table. We only need membership id and
+          // contribution id. We can retrieve the membership id by querying the
+          // civicrm_membership table for the membership with
+          // contribution_recur_id = $recur_id
+          //
+          // First, get the membership id.
+          $selectSql = "SELECT id FROM civicrm_membership WHERE contribution_recur_id = {$recur_id}";
+          $membershipId = CRM_Core_DAO::singleValueQuery($selectSql);
+          if ($membershipId) {
+            $mpParams = array(
+              'version' => 3,
+              'membership_id' => $membershipId,
+              'contribution_id' => $contribution['id']
+            );
+            $membership_payment = civicrm_api('MembershipPayment', 'create', $mpParams);
+          }
         }
       }
     }

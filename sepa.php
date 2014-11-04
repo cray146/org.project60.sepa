@@ -495,8 +495,22 @@ function sepa_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &$valu
     if ($membership['is_error'] == 0) {
       $sql = "SELECT contact_id FROM civicrm_membership WHERE id = {$objectId}";
       $contactId = CRM_Core_DAO::singleValueQuery($sql); 
+      $actionLink = 'record';
       if ($membership['values'][$objectId]['contribution_recur_id'] > 0) {
         $contributionRecurId = $membership['values'][$objectId]['contribution_recur_id'];
+        // Check if the recurring contribution is not completed or cancelled
+        $contribution_recur_params = array(
+          'version' => 3,
+          'id' => $contributionRecurId
+        );
+        $contributionRecur = civicrm_api('ContributionRecur', 'get', $contribution_recur_params);
+        if ($contributionRecur['is_error'] == 0) {
+          if ($contributionRecur['values'][$contributionRecurId]['contribution_status_id'] != 1 and $contributionRecur['values'][$contributionRecurId]['contribution_status_id'] != 3) {
+            $actionLink = 'view';
+          }
+        }
+      }
+      if ($actionLink == 'view') {
         array_unshift(
           $links,
           array(

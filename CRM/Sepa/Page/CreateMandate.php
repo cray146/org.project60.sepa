@@ -134,10 +134,10 @@ class CRM_Sepa_Page_CreateMandate extends CRM_Core_Page {
     if (isset($_REQUEST['membership_id']) && $_REQUEST['membership_id'] > 0) {
       /*
        * In the civicrm_membership_payment table only membership and
-       * contribution records can be linked. This raises é questions:
+       * contribution records can be linked. This raises 2 questions:
        * 1.- where can we store the link between membership and
-       * recrurring_contribution record? We'll try to do so in
-       * civicrm_membership table.
+       * recurring_contribution record? We'll try to do so in
+       * civicrm_membership table via the field contribution_recur_id.
        * 2.- how do we make sure that a new record is inserted into the
        * civicrm_membership_payment table for each installment of the recurring
        * contribution linked with the membership?

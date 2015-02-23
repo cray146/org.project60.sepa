@@ -63,16 +63,12 @@ class CRM_Utils_SepaCustomisationHooks {
    * @access public
    */
   static function modify_txmessage(&$txmessage, $contribution, $creditor) {
-<<<<<<< HEAD
     if (version_compare(CRM_Utils_System::version(), '4.5', '<'))
     {
       return CRM_Utils_Hook::singleton()->invoke(3, $txmessage, $contribution, $creditor, self::$null, self::$null, 'civicrm_modify_txmessage');
     }else{
       return CRM_Utils_Hook::singleton()->invoke(3, $txmessage, $contribution, $creditor, self::$null, self::$null, self::$null, 'civicrm_modify_txmessage');
     }
-=======
-    return CRM_Utils_Hook::singleton()->invoke(3, $txmessage, $contribution, $creditor, self::$null, self::$null, self::$null, 'civicrm_modify_txmessage');
->>>>>>> Added additional parameter in call to hook->invoke.
   }
 
 
@@ -86,16 +82,12 @@ class CRM_Utils_SepaCustomisationHooks {
    * @access public
    */
   static function mend_rcontrib($rcontribId, &$rcontrib) {
-<<<<<<< HEAD
     if (version_compare(CRM_Utils_System::version(), '4.5', '<'))
     {
       return CRM_Utils_Hook::singleton()->invoke(2, $rcontribId, $rcontrib, self::$null, self::$null, self::$null, 'civicrm_mend_rcontrib');
     }else{
       return CRM_Utils_Hook::singleton()->invoke(2, $rcontribId, $rcontrib, self::$null, self::$null, self::$null, self::$null, 'civicrm_mend_rcontrib');
     }
-=======
-    return CRM_Utils_Hook::singleton()->invoke(2, $rcontribId, $rcontrib, self::$null, self::$null, self::$null, self::$null, 'civicrm_mend_rcontrib');
->>>>>>> Added additional parameter in call to hook->invoke.
   }
 
   /**
@@ -110,15 +102,11 @@ class CRM_Utils_SepaCustomisationHooks {
    * @access public
    */
   static function defer_collection_date(&$collection_date, $creditor_id) {
-<<<<<<< HEAD
     if (version_compare(CRM_Utils_System::version(), '4.5', '<'))
     {
       return CRM_Utils_Hook::singleton()->invoke(2, $collection_date, $creditor_id, self::$null, self::$null, self::$null, 'civicrm_defer_collection_date');
     }else{
       return CRM_Utils_Hook::singleton()->invoke(2, $collection_date, $creditor_id, self::$null, self::$null, self::$null, self::$null, 'civicrm_defer_collection_date');
     }
-=======
-    return CRM_Utils_Hook::singleton()->invoke(2, $collection_date, $creditor_id, self::$null, self::$null, self::$null, self::$null,  'civicrm_defer_collection_date');
->>>>>>> Added additional parameter in call to hook->invoke.
   }
 }

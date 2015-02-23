@@ -48,8 +48,13 @@ class CRM_Sepa_Page_CreateMandate extends CRM_Core_Page {
       }
 
     } else if (isset($_REQUEST['cid'])) {
-      // create a new form
-      $this->prepareCreateForm($_REQUEST['cid']);
+      if (isset($_REQUEST['mid'])) {
+        // create a new form to create a mandate for membership payment
+        $this->prepareCreateForm($_REQUEST['cid'], $_REQUEST['mid']);
+      } else {
+        // create a new form
+        $this->prepareCreateForm($_REQUEST['cid']);
+      }
 
     } else if (isset($_REQUEST['clone'])) {
       // this is a cloned form
@@ -124,6 +129,39 @@ class CRM_Sepa_Page_CreateMandate extends CRM_Core_Page {
       return;
     }
 
+    //@cray146: link the contribution to a membership in case of membership
+    //payment
+    if (isset($_REQUEST['membership_id']) && $_REQUEST['membership_id'] > 0) {
+      /*
+       * In the civicrm_membership_payment table only membership and
+       * contribution records can be linked. This raises é questions:
+       * 1.- where can we store the link between membership and
+       * recrurring_contribution record? We'll try to do so in
+       * civicrm_membership table.
+       * 2.- how do we make sure that a new record is inserted into the
+       * civicrm_membership_payment table for each installment of the recurring
+       * contribution linked with the membership?
+       */
+      $contributionId = $contribution['id'];
+      // we can remove this
+      /*
+      $membership_payment_data = array(
+        'version' => 3,
+        'membership_id' => $_REQUEST['membership_id'],
+        'contribution_id' => $contributionId
+      );
+      $membership_payment = civicrm_api('MembershipPayment', 'create', $membership_payment_data); 
+       */
+      /*
+       * Update the membership record with a reference to the recurring
+       * contribution.
+       */
+      if ($type == 'RCUR') {
+        $updateSql = "UPDATE civicrm_membership SET contribution_recur_id = {$contributionId} WHERE id = {$_REQUEST['membership_id']}";
+        CRM_Core_DAO::executeQuery($updateSql);
+      }
+    }
+
     // create a note, if requested
     if ($_REQUEST['note']) {
       // add note
@@ -185,7 +223,7 @@ class CRM_Sepa_Page_CreateMandate extends CRM_Core_Page {
   /**
    * Will prepare the form and look up all necessary data
    */
-  function prepareCreateForm($contact_id) {
+  function prepareCreateForm($contact_id, $membership_id = 0) {
     // load financial types
     $this->assign("financial_types", CRM_Contribute_PseudoConstant::financialType());
     $this->assign("date", date('Y-m-d'));
@@ -201,6 +239,9 @@ class CRM_Sepa_Page_CreateMandate extends CRM_Core_Page {
 
     $this->assign("contact_id", $contact_id);
     $this->assign("display_name", $contact['display_name']);
+
+    //@cray146: assign membership 
+    $this->assign("membership_id", $membership_id);
 
     // look up campaigns
     $campaign_query = civicrm_api('Campaign', 'get', array('version'=>3, 'is_active'=>1, 'option.limit' => 999));

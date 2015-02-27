@@ -566,6 +566,14 @@ function sepa_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &$valu
         if ($contributionRecur['is_error'] == 0) {
           if ($contributionRecur['values'][$contributionRecurId]['contribution_status_id'] != 1 and $contributionRecur['values'][$contributionRecurId]['contribution_status_id'] != 3) {
             $actionLink = 'view';
+            // If the mandate is cancelled or deleted, we must remove the
+            // reference to the recurring contribution in the membership record
+            // (contribution_recur_id) in order to reset the autorenew flag. The
+            // membership status cannot be overridden as long as the autorenew
+            // flag is set. This prevents the administrator to cancel the
+            // membership.
+            $membership_params['contribution_recur_id'] = NULL;
+            civicrm_api('Membership', 'create', $membership_params);
           }
         }
       }

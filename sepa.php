@@ -462,7 +462,9 @@ function sepa_civicrm_navigationMenu(&$params) {
           'label' => ts('CiviSEPA Dashboard',array('domain' => 'org.project60.sepa')),
           'name' => 'Dashboard',
           'url' => 'civicrm/sepa',
-          'permission' => 'administer CiviCRM',
+          //@cray146: modify permission to access CiviSEPA Dashboard
+          //'permission' => 'administer CiviCRM',
+          'permission' => 'access CiviContribute, edit contributions',
           'operator' => NULL,
           'separator' => 2,
           'parentID' => $contributions_menu_id,
@@ -538,22 +540,13 @@ function sepa_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$erro
  */
 function sepa_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &$values) {
   if ($op == "membership.tab.row" and $objectName == "Membership") {
-    /*
-    $sql = 'SELECT contact_id FROM civicrm_membership WHERE id = %d';
-    $sqlParams = array(
-      $objectId,
-      'Integer'
-    );
-    $contactId = CRM_Core_DAO::singleValueQuery($sql, $sqlParams); 
-     */
     $membership_params = array(
       'version' => 3,
       'id' => $objectId
     );
     $membership = civicrm_api('Membership', 'get', $membership_params);
     if ($membership['is_error'] == 0) {
-      $sql = "SELECT contact_id FROM civicrm_membership WHERE id = {$objectId}";
-      $contactId = CRM_Core_DAO::singleValueQuery($sql); 
+      $contactId = $membership['values'][$objectId]['contact_id'];
       $actionLink = 'record';
       if ($membership['values'][$objectId]['contribution_recur_id'] > 0) {
         $contributionRecurId = $membership['values'][$objectId]['contribution_recur_id'];
@@ -564,16 +557,27 @@ function sepa_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &$valu
         );
         $contributionRecur = civicrm_api('ContributionRecur', 'get', $contribution_recur_params);
         if ($contributionRecur['is_error'] == 0) {
+          // Contribution Status options
+          // 1  Completed
+          // 2  Pending
+          // 3  Cancelled
+          // 4  Failed
+          // 5  In Progress
+          // 6  Overdue
+          // 7  Refunded
+          // 8  Partially paid
+          // 9  Pending refund
           if ($contributionRecur['values'][$contributionRecurId]['contribution_status_id'] != 1 and $contributionRecur['values'][$contributionRecurId]['contribution_status_id'] != 3) {
             $actionLink = 'view';
+          } else {
             // If the mandate is cancelled or deleted, we must remove the
             // reference to the recurring contribution in the membership record
             // (contribution_recur_id) in order to reset the autorenew flag. The
             // membership status cannot be overridden as long as the autorenew
             // flag is set. This prevents the administrator to cancel the
             // membership.
-            $membership_params['contribution_recur_id'] = NULL;
-            civicrm_api('Membership', 'create', $membership_params);
+            $sql = "UPDATE civicrm_membership SET contribution_recur_id = NULL where id = {$objectId}";
+            CRM_Core_DAO::singleValueQuery($sql);
           }
         }
       }
